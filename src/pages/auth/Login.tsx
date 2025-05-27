@@ -26,32 +26,16 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // For demo purposes, simulate login for specific users
-      if (email === "admin@fieldtask.com" && password === "password") {
-        await login({
-          id: "admin-1",
-          name: "Admin User",
-          email: "admin@fieldtask.com",
-          role: "admin",
-        });
-        navigate("/dashboard");
-      } else if (email === "field@fieldtask.com" && password === "password") {
-        await login({
-          id: "field-1",
-          name: "Field User",
-          email: "field@fieldtask.com",
-          role: "field",
-          phone: "555-123-4567",
-        });
-        navigate("/dashboard");
-      } else {
-        setError(
-          "Invalid credentials. Try admin@fieldtask.com or field@fieldtask.com with password: password"
-        );
+      await login(email, password); // Use Cognito login
+      navigate("/dashboard");
+    } catch (err) {
+      // Type the error more specifically
+      let errorMessage = "Authentication failed. Please try again.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
       }
-    } catch (error) {
-      setError("Authentication failed. Please try again.");
-      console.log(error);
+      setError(errorMessage);
+      console.log(err);
     } finally {
       setIsLoading(false);
     }
@@ -100,13 +84,6 @@ const Login = () => {
           </Button>
         </div>
       </form>
-
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>Demo Credentials:</p>
-        <p className="mt-1">Admin: admin@fieldtask.com</p>
-        <p>Field: field@fieldtask.com</p>
-        <p className="mt-1">Password: password</p>
-      </div>
     </div>
   );
 };

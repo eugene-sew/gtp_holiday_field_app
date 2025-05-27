@@ -1,11 +1,11 @@
-import { Fragment } from 'react';
-import { Menu, Transition } from '@headlessui/react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import { useNotificationStore } from '../../stores/notificationStore';
-import { Bell, Menu as MenuIcon, User, LogOut } from 'lucide-react';
-import { clsx } from 'clsx';
-import NotificationPanel from '../notifications/NotificationPanel';
+import { Fragment } from "react";
+import { Menu, Transition } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../stores/authStore";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { Bell, Menu as MenuIcon, User, LogOut } from "lucide-react";
+import { clsx } from "clsx";
+import NotificationPanel from "../notifications/NotificationPanel";
 
 type HeaderProps = {
   setSidebarOpen: (open: boolean) => void;
@@ -13,11 +13,15 @@ type HeaderProps = {
   setNotificationOpen: (open: boolean) => void;
 };
 
-const Header = ({ setSidebarOpen, notificationOpen, setNotificationOpen }: HeaderProps) => {
+const Header = ({
+  setSidebarOpen,
+  notificationOpen,
+  setNotificationOpen,
+}: HeaderProps) => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { notifications } = useNotificationStore();
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="sticky top-0 z-10 bg-white shadow">
@@ -54,9 +58,9 @@ const Header = ({ setSidebarOpen, notificationOpen, setNotificationOpen }: Heade
             </div>
 
             {/* Notification panel */}
-            <NotificationPanel 
-              open={notificationOpen} 
-              setOpen={setNotificationOpen} 
+            <NotificationPanel
+              open={notificationOpen}
+              setOpen={setNotificationOpen}
             />
 
             {/* Profile dropdown */}
@@ -80,17 +84,19 @@ const Header = ({ setSidebarOpen, notificationOpen, setNotificationOpen }: Heade
               >
                 <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1 px-4 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {user?.id}
+                    </p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                   <div className="py-1">
                     <Menu.Item>
                       {({ active }) => (
                         <button
-                          onClick={() => navigate('/profile')}
+                          onClick={() => navigate("/profile")}
                           className={clsx(
-                            active ? 'bg-gray-100' : '',
-                            'w-full text-left px-4 py-2 text-sm text-gray-700 flex items-center'
+                            active ? "bg-gray-100" : "",
+                            "w-full text-left px-4 py-2 text-sm text-gray-700 flex items-center"
                           )}
                         >
                           <User className="mr-3 h-4 w-4" />
@@ -103,8 +109,8 @@ const Header = ({ setSidebarOpen, notificationOpen, setNotificationOpen }: Heade
                         <button
                           onClick={logout}
                           className={clsx(
-                            active ? 'bg-gray-100' : '',
-                            'w-full text-left px-4 py-2 text-sm text-red-600 flex items-center'
+                            active ? "bg-gray-100" : "",
+                            "w-full text-left px-4 py-2 text-sm text-red-600 flex items-center"
                           )}
                         >
                           <LogOut className="mr-3 h-4 w-4" />

@@ -1,9 +1,9 @@
-import { Fragment, useEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XCircle, Clock, Bell } from 'lucide-react';
-import { useNotificationStore } from '../../stores/notificationStore';
-import { formatDistanceToNow } from 'date-fns';
-import { clsx } from 'clsx';
+import { Fragment, useEffect } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { XCircle, Clock, Bell } from "lucide-react";
+import { useNotificationStore } from "../../stores/notificationStore";
+import { formatDistanceToNow } from "date-fns";
+import { clsx } from "clsx";
 
 type NotificationPanelProps = {
   open: boolean;
@@ -22,7 +22,11 @@ const NotificationPanel = ({ open, setOpen }: NotificationPanelProps) => {
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="fixed inset-0 overflow-hidden z-40" onClose={setOpen}>
+      <Dialog
+        as="div"
+        className="fixed inset-0 overflow-hidden z-40"
+        onClose={setOpen}
+      >
         <div className="absolute inset-0 overflow-hidden">
           <Transition.Child
             as={Fragment}
@@ -70,7 +74,9 @@ const NotificationPanel = ({ open, setOpen }: NotificationPanelProps) => {
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center">
                         <Bell className="mx-auto h-12 w-12 text-gray-300" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">
+                          No notifications
+                        </h3>
                         <p className="mt-1 text-sm text-gray-500">
                           You're all caught up! No new notifications.
                         </p>
@@ -81,28 +87,40 @@ const NotificationPanel = ({ open, setOpen }: NotificationPanelProps) => {
                           <li
                             key={notification.id}
                             className={clsx(
-                              'p-4 hover:bg-gray-50 transition-colors duration-150',
-                              !notification.read && 'bg-blue-50'
+                              "p-4 hover:bg-gray-50 transition-colors duration-150",
+                              !notification.read && "bg-blue-50"
                             )}
                             onClick={() => markAsRead(notification.id)}
                           >
                             <div className="flex items-start">
                               <div className="flex-shrink-0 pt-0.5">
-                                <div className={clsx(
-                                  'h-10 w-10 rounded-full flex items-center justify-center',
-                                  notification.type === 'task_assigned' && 'bg-blue-100 text-blue-600',
-                                  notification.type === 'deadline' && 'bg-amber-100 text-amber-600',
-                                  notification.type === 'status_update' && 'bg-green-100 text-green-600'
-                                )}>
-                                  {notification.icon}
+                                <div
+                                  className={clsx(
+                                    "h-10 w-10 rounded-full flex items-center justify-center",
+                                    notification.type === "task_assigned" &&
+                                      "bg-blue-100 text-blue-600",
+                                    notification.type === "deadline" &&
+                                      "bg-amber-100 text-amber-600",
+                                    notification.type === "status_update" &&
+                                      "bg-green-100 text-green-600"
+                                  )}
+                                >
+                                  {<notification.icon />}
                                 </div>
                               </div>
                               <div className="ml-3 flex-1">
-                                <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                                <p className="mt-1 text-sm text-gray-500">{notification.message}</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {notification.title}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                  {notification.message}
+                                </p>
                                 <div className="mt-2 text-xs text-gray-500 flex items-center">
                                   <Clock className="h-3 w-3 mr-1" />
-                                  {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                                  {formatDistanceToNow(
+                                    new Date(notification.timestamp),
+                                    { addSuffix: true }
+                                  )}
                                 </div>
                               </div>
                             </div>

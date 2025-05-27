@@ -1,8 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Calendar, Clock, MapPin, User } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { Task } from '../../types/task';
-import { clsx } from 'clsx';
+import { useNavigate } from "react-router-dom";
+import { Calendar, User } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { Task } from "../../types/task";
+import { clsx } from "clsx";
+import { useTeamStore } from "../../stores/teamStore";
+import { useAuthStore } from "../../stores/authStore";
 
 type TaskCardProps = {
   task: Task;
@@ -10,75 +12,94 @@ type TaskCardProps = {
 
 const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
-  
+  const team = useTeamStore((state) => state.team);
+  const { user } = useAuthStore();
+
   const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    in_progress: 'bg-blue-100 text-blue-800',
-    completed: 'bg-green-100 text-green-800',
-    overdue: 'bg-red-100 text-red-800',
-  };
-  
-  const isOverdue = new Date(task.deadline) < new Date() && task.status !== 'completed';
-  const displayStatus = isOverdue ? 'overdue' : task.status;
-  
-  const statusLabel = {
-    pending: 'Pending',
-    in_progress: 'In Progress',
-    completed: 'Completed',
-    overdue: 'Overdue',
+    New: "bg-gray-100 text-gray-800",
+    pending: "bg-yellow-100 text-yellow-800",
+    in_progress: "bg-blue-100 text-blue-800",
+    completed: "bg-green-100 text-green-800",
+    overdue: "bg-red-100 text-red-800",
   };
 
-  // Calculate deadline proximity for animation
+  const isOverdue =
+    new Date(task.deadline) < new Date() && task.status !== "completed";
+  const displayStatus = isOverdue ? "overdue" : task.status;
+
+  const statusLabel = {
+    New: "New",
+    pending: "Pending",
+    in_progress: "In Progress",
+    completed: "Completed",
+    overdue: "Overdue",
+  };
+
   const deadlineDate = new Date(task.deadline);
   const today = new Date();
-  const daysUntilDeadline = Math.floor((deadlineDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-  const isUrgent = daysUntilDeadline <= 1 && !isOverdue && task.status !== 'completed';
+  const daysUntilDeadline = Math.floor(
+    (deadlineDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
+  );
+  const isUrgent =
+    daysUntilDeadline <= 1 && !isOverdue && task.status !== "completed";
+
+  const assigneeUser = task.assignedTo
+    ? team.find((member) => member.id === task.assignedTo)
+    : null;
+
+  let assigneeName = "Unassigned";
+
+  if (user?.role !== "admin" && task.assignedTo === user?.sub) {
+    assigneeName = "Assigned to you";
+  } else if (assigneeUser) {
+    assigneeName = assigneeUser.name;
+  }
 
   return (
-    <div 
-      onClick={() => navigate(`/tasks/${task.id}`)}
+    <div
+      onClick={() => navigate(`/tasks/${task.taskId}`)}
       className={clsx(
-        'bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-all duration-150 cursor-pointer',
-        isUrgent && 'animate-pulse-subtle border-amber-300'
+        "bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition-all duration-150 cursor-pointer",
+        isUrgent && "animate-pulse-subtle border-amber-300"
       )}
     >
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{task.title}</h3>
-        <div className={clsx(
-          'px-2 py-1 rounded-full text-xs font-medium',
-          statusColors[displayStatus as keyof typeof statusColors]
-        )}>
-          {statusLabel[displayStatus as keyof typeof statusLabel]}
+        <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+          {task.description.substring(0, 50) +
+            (task.description.length > 50 ? "..." : "")}
+        </h3>
+        <div
+          className={clsx(
+            "px-2 py-1 rounded-full text-xs font-medium",
+            statusColors[displayStatus as keyof typeof statusColors] ||
+              statusColors.New
+          )}
+        >
+          {statusLabel[displayStatus as keyof typeof statusLabel] ||
+            statusLabel.New}
         </div>
       </div>
-      
-      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{task.description}</p>
-      
+
+      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        {task.description}
+      </p>
+
       <div className="border-t border-gray-100 pt-3 mt-2">
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center text-xs text-gray-500">
             <Calendar className="h-3 w-3 mr-1" />
-            <span>Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}</span>
+            <span>
+              Due{" "}
+              {formatDistanceToNow(new Date(task.deadline), {
+                addSuffix: true,
+              })}
+            </span>
           </div>
-          
+
           <div className="flex items-center text-xs text-gray-500">
             <User className="h-3 w-3 mr-1" />
-            <span>{task.assignee?.name || 'Unassigned'}</span>
+            <span>{assigneeName}</span>
           </div>
-          
-          {task.location && (
-            <div className="flex items-center text-xs text-gray-500 col-span-2">
-              <MapPin className="h-3 w-3 mr-1" />
-              <span className="truncate">{task.location}</span>
-            </div>
-          )}
-          
-          {task.priority === 'high' && (
-            <div className="flex items-center text-xs text-red-500 col-span-2">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              <span>High Priority</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
