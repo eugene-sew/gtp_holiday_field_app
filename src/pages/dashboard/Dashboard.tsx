@@ -16,6 +16,11 @@ import Card from "../../components/ui/Card";
 import { Task } from "../../types/task";
 import { User } from "../../types/user";
 
+/**
+ * @interface DashboardActivity
+ * Defines the structure for items displayed in the RecentActivity component on the dashboard.
+ * This is a local type tailored for the dashboard's activity feed.
+ */
 interface DashboardActivity {
   id: string;
   user: string;
@@ -25,6 +30,11 @@ interface DashboardActivity {
   iconBackground: string;
 }
 
+/**
+ * Dashboard component: Main view after login.
+ * Displays task statistics, a task status chart, recent activity, and upcoming tasks.
+ * Adapts content based on user role (admin vs. member).
+ */
 const Dashboard = () => {
   const { user } = useAuthStore();
   const { tasks } = useTaskStore();
@@ -56,6 +66,14 @@ const Dashboard = () => {
     { name: "Completed", value: completedTasks.length, color: "#10B981" },
   ];
 
+  /**
+   * Transforms a list of tasks into a list of activity items for the dashboard.
+   * It infers activity type (created vs. updated) based on createdAt and updatedAt timestamps.
+   * User names are resolved from the team store.
+   * @param {Task[]} tasksToTransform - The list of tasks to process.
+   * @param {User[]} teamMembers - The list of team members to resolve names.
+   * @returns {DashboardActivity[]} An array of activity items, sorted by date descending.
+   */
   const transformTasksToActivities = (
     tasksToTransform: Task[],
     teamMembers: User[]

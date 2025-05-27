@@ -22,15 +22,21 @@ function App() {
   const { fetchTasks } = useTaskStore();
   const [isLoading, setIsLoading] = useState(true);
 
+  // Effect to check authentication status when the app loads.
   useEffect(() => {
     const initAuth = async () => {
-      await checkAuth();
-      setIsLoading(false);
+      try {
+        await checkAuth(); // Attempt to restore session from Cognito.
+      } catch (error) {
+        console.error("Initial auth check failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-
     initAuth();
   }, [checkAuth]);
 
+  // Effect to fetch initial data once the user is authenticated.
   useEffect(() => {
     if (isAuthenticated) {
       fetchTeamMembers();
@@ -38,6 +44,7 @@ function App() {
     }
   }, [isAuthenticated, fetchTeamMembers, fetchTasks]);
 
+  // Display a global loading indicator while authentication is being verified.
   if (isLoading) {
     return <Loading />;
   }
@@ -45,17 +52,21 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth routes */}
+        {/* Authentication Routes: Accessible when not logged in */}
         <Route element={<AuthLayout />}>
           <Route
             path="/login"
             element={
-              !isAuthenticated ? <Login /> : <Navigate to="/dashboard" />
+              !isAuthenticated ? (
+                <Login />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
             }
           />
         </Route>
 
-        {/* Protected routes */}
+        {/* Protected Routes: Require authentication */}
         <Route
           element={
             <ProtectedRoute>
@@ -66,24 +77,33 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/tasks/:id" element={<TaskDetails />} />
+
           <Route path="/tasks/create" element={<CreateTask />} />
-          <Route path="/team" element={<Team />} />
+          {/* Team route is admin-only, enforced by ProtectedRoute and within Team component */}
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Team />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/profile" element={<Profile />} />
         </Route>
 
-        {/* Redirect from / to /dashboard if authenticated, otherwise to /login */}
+        {/* Root path navigation: redirect based on authentication state */}
         <Route
           path="/"
           element={
             isAuthenticated ? (
-              <Navigate to="/dashboard" />
+              <Navigate to="/dashboard" replace />
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/login" replace />
             )
           }
         />
 
-        {/* 404 */}
+        {/* Catch-all 404 Not Found Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

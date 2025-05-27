@@ -66,6 +66,7 @@ const Tasks = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               icon={<Search className="h-5 w-5 text-gray-400" />}
               fullWidth
+              className="p-2 py-3 "
             />
           </div>
 
@@ -73,7 +74,7 @@ const Tasks = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 py-3"
             >
               <option value="all">All Statuses</option>
               <option value="New">New</option>

@@ -5,15 +5,29 @@ import { useAuthStore } from "../../stores/authStore";
 import { useTeamStore } from "../../stores/teamStore";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { format } from "date-fns";
-import { Calendar, Edit, Trash2, Check, User } from "lucide-react";
+import { Calendar, Edit, Trash2, Check, User as UserIcon } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import { Task } from "../../types/task";
 
+/**
+ * @file TaskDetails.tsx
+ * @description Component to display detailed information for a single task.
+ * It allows authorized users (admins or assignees) to update the task's status.
+ * Admins have additional capabilities to navigate to an edit page or delete the task.
+ * The component fetches task data based on the ID from the URL parameters and handles
+ * loading states, error notifications, and user interactions for task management.
+ */
+
+/**
+ * TaskDetails Component
+ * Renders the detailed view of a task, including its description, status, deadline, and assignee.
+ * Provides actions like status updates, editing (for admins), and deletion (for admins).
+ */
 const TaskDetails = () => {
   const { id: taskId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { tasks, getTaskById, updateTask, deleteTask } = useTaskStore();
+  const { getTaskById, updateTask, deleteTask } = useTaskStore();
   const { user } = useAuthStore();
   const team = useTeamStore((state) => state.team);
   const { addNotification } = useNotificationStore();
@@ -24,6 +38,11 @@ const TaskDetails = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
+  /**
+   * useEffect hook to fetch and set the task details when the component mounts or taskId changes.
+   * It relies on tasks being available in the `taskStore`. If the task is not found,
+   * it navigates the user back to the tasks list and shows an error notification.
+   */
   useEffect(() => {
     if (taskId) {
       const taskData = getTaskById(taskId);
@@ -39,13 +58,12 @@ const TaskDetails = () => {
       }
     }
     setLoading(false);
-  }, [taskId, getTaskById, navigate, tasks, addNotification]);
+  }, [taskId, getTaskById, navigate, addNotification]);
 
-  // Refined assigneeName logic
   let assigneeName = "Unassigned";
   if (task?.assignedTo) {
     if (user && user.id === task.assignedTo) {
-      assigneeName = user.name || "Assigned to you"; // Use current user's name or "Assigned to you"
+      assigneeName = user.name || "Assigned to you";
     } else {
       const teamMember = team.find((member) => member.id === task.assignedTo);
       if (teamMember) {
@@ -61,10 +79,8 @@ const TaskDetails = () => {
   }
 
   const isAdmin = user?.role === "admin";
-  const isAssignee = user?.id === task.assignedTo; // Re-introduce isAssignee
-  // Controls the main "Edit" button for the page
+  const isAssignee = user?.id === task.assignedTo;
   const canNavigateToEditPage = isAdmin;
-  // Controls status update buttons
   const canUpdateTaskStatus = isAdmin || isAssignee;
   const canDelete = isAdmin;
 
@@ -222,7 +238,7 @@ const TaskDetails = () => {
                   Assigned To
                 </h3>
                 <div className="mt-1 flex items-center text-sm text-gray-900">
-                  <User className="h-5 w-5 text-gray-400 mr-1.5" />
+                  <UserIcon className="h-5 w-5 text-gray-400 mr-1.5" />
                   {assigneeName}
                 </div>
               </div>

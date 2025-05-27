@@ -10,6 +10,7 @@ import {
   CognitoUserSession,
 } from "amazon-cognito-identity-js";
 
+// Cognito User Pool configuration sourced from environment variables
 const poolData = {
   UserPoolId: import.meta.env.VITE_APP_AUTH_USER_POOL_ID,
   ClientId: import.meta.env.VITE_APP_AUTH_USER_POOL_WEB_CLIENT_ID,
@@ -17,6 +18,11 @@ const poolData = {
 
 const userPool = new CognitoUserPool(poolData);
 
+/**
+ * @interface AuthState
+ * Defines the shape of the authentication state managed by Zustand.
+ * Includes user information, authentication status, and methods for auth operations.
+ */
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -30,23 +36,24 @@ interface AuthState {
   ) => Promise<Pick<User, "id" | "name" | "email"> | null>;
 }
 
-// Helper function to extract role from ID token
+/**
+ * Decodes the ID token to extract Cognito groups and determine user role.
+ * @param {string} idToken - The JWT ID token.
+ * @returns {"admin" | "member" | undefined} The user's role or undefined if not found or error.
+ */
 const getRoleFromIdToken = (
   idToken: string
 ): "admin" | "member" | undefined => {
   try {
+    // Decode the token to access claims, specifically looking for 'cognito:groups'.
     const decodedToken = jwtDecode<{
       "cognito:groups"?: string[];
       sub?: string;
     }>(idToken);
-    // console.log("decodedToken", decodedToken); // Kept for debugging if needed
     const groups = decodedToken["cognito:groups"];
     if (groups) {
-      if (groups.includes("admin")) {
-        return "admin";
-      } else if (groups.includes("member")) {
-        return "member";
-      }
+      if (groups.includes("admin")) return "admin";
+      if (groups.includes("member")) return "member";
     }
   } catch (error) {
     console.error("Error decoding token or extracting groups:", error);
@@ -54,15 +61,24 @@ const getRoleFromIdToken = (
   return undefined;
 };
 
+/**
+ * Zustand store for managing authentication state.
+ * Handles user login, logout, session checking, and attribute fetching from Cognito.
+ */
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
 
+  /**
+   * Attempts to authenticate the user with Cognito using email and password.
+   * On success, fetches user attributes, determines role, and updates the store.
+   * User details are persisted to localStorage.
+   * @param {string} email - User's email.
+   * @param {string} password - User's password.
+   * @returns {Promise<void>} A promise that resolves on successful login or rejects on failure.
+   */
   login: async (email, password) => {
-    const authenticationData = {
-      Username: email,
-      Password: password,
-    };
+    const authenticationData = { Username: email, Password: password };
     const authenticationDetails = new AuthenticationDetails(authenticationData);
     const cognitoIdentityUser = new CognitoIdentityUser({
       Username: email,
@@ -90,9 +106,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             resolve();
           } else if (fetchedAttributes) {
             console.warn(
-              "Login successful, fetched attributes, but role could not be determined from ID token."
+              "Login successful, fetched attributes, but role could not be determined."
             );
             const userWithoutRole: User = {
+              // Proceed with login, default role to 'member'
               ...fetchedAttributes,
               role: "member",
               idToken: idToken,
@@ -102,7 +119,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             resolve();
           } else {
             console.error(
-              "Login successful, but failed to fetch user attributes or determine role."
+              "Login: Failed to fetch user attributes or determine role."
             );
             set({ user: null, isAuthenticated: false });
             reject(
@@ -121,30 +138,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  /**
+   * Logs out the current user by signing them out of Cognito and clearing local state/storage.
+   */
   logout: async () => {
     const cognitoUser = userPool.getCurrentUser();
     if (cognitoUser) {
-      cognitoUser.signOut();
+      cognitoUser.signOut(); // Invalidate Cognito session
     }
-    localStorage.removeItem("user");
-    set({ user: null, isAuthenticated: false });
+    localStorage.removeItem("user"); // Clear persisted session
+    set({ user: null, isAuthenticated: false }); // Reset store state
   },
 
+  /**
+   * Updates user information in the local store and localStorage.
+   * Note: This does NOT update attributes in Cognito. For persistent changes,
+   * Cognito SDK methods for attribute updates should be used elsewhere.
+   * @param {User} user - The updated user object.
+   */
   updateUser: async (user: User) => {
     try {
-      // This is a local update, not a Cognito update.
-      await new Promise((resolve) => setTimeout(resolve, 500));
       localStorage.setItem("user", JSON.stringify(user));
       set({ user });
       console.warn(
         "updateUser is primarily updating local state and localStorage. Cognito attributes should be updated via Cognito SDK for persistence."
       );
     } catch (error) {
-      console.error("Update user failed:", error);
+      console.error("Local user update failed:", error);
       throw error;
     }
   },
 
+  /**
+   * Checks if a user session is active and valid with Cognito.
+   * Typically called on application initialization.
+   * If session is valid, fetches attributes, role, and updates the store.
+   * @returns {Promise<boolean>} True if authentication is successful, false otherwise.
+   */
   checkAuth: async () => {
     return new Promise((resolve) => {
       const cognitoUser = userPool.getCurrentUser();
@@ -159,6 +189,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               return;
             }
             if (session && session.isValid()) {
+              // Crucial check for session validity
               const idToken = session.getIdToken().getJwtToken();
               const fetchedAttributes = await get().fetchUserAttributes(
                 cognitoUser,
@@ -177,11 +208,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 resolve(true);
               } else if (fetchedAttributes) {
                 console.warn(
-                  "Session valid, fetched attributes, but role could not be determined from ID token."
+                  "checkAuth: Session valid, fetched attributes, but role could not be determined."
                 );
                 const userWithoutRole: User = {
                   ...fetchedAttributes,
-                  role: "member",
+                  role: "member", // Default to 'member'
                   idToken: idToken,
                 };
                 set({ user: userWithoutRole, isAuthenticated: true });
@@ -189,13 +220,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 resolve(true);
               } else {
                 console.error(
-                  "Session valid, but failed to fetch user attributes or determine role."
+                  "checkAuth: Session valid, but failed to fetch attributes or determine role."
                 );
-                set({ user: null, isAuthenticated: false });
                 localStorage.removeItem("user");
+                set({ user: null, isAuthenticated: false });
                 resolve(false);
               }
             } else {
+              // Session exists but is not valid (e.g., refresh token expired)
               console.log(
                 "Session is not valid or does not exist after getSession call."
               );
@@ -206,6 +238,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         );
       } else {
+        // No current user in Cognito pool (i.e., not logged in or session completely expired)
         localStorage.removeItem("user");
         set({ user: null, isAuthenticated: false });
         resolve(false);
@@ -213,6 +246,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  /**
+   * Fetches standard user attributes (name, email) from Cognito and derives the 'id'
+   * field from the 'sub' (subject) claim of the provided ID token.
+   * @param {CognitoIdentityUser} cognitoUser - The authenticated Cognito user object.
+   * @param {string} idTokenForSub - The validated JWT ID token from which to extract the 'sub'.
+   * @returns {Promise<Pick<User, "id" | "name" | "email"> | null>} Core user details or null on failure.
+   */
   fetchUserAttributes: async (
     cognitoUser: CognitoIdentityUser,
     idTokenForSub: string
@@ -220,10 +260,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return new Promise((resolve, reject) => {
       let subFromToken: string | undefined;
       try {
+        // Decode the token specifically to get the 'sub' claim for our internal 'id'.
         const decodedToken = jwtDecode<{ sub?: string }>(idTokenForSub);
         subFromToken = decodedToken.sub;
       } catch (error) {
         console.error("Error decoding ID token in fetchUserAttributes:", error);
+        // If 'sub' is critical and cannot be decoded, we might reject.
+        // For now, it falls back to cognitoUser.getUsername() if subFromToken is undefined.
       }
 
       cognitoUser.getUserAttributes((err, attributes) => {
@@ -234,32 +277,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         if (attributes) {
+          // The primary identifier 'id' for our User type is the 'sub' claim from the JWT.
+          // cognitoUser.getUsername() is the username used for login, can be stored separately if needed.
           const baseUser: Partial<Pick<User, "id" | "name" | "email">> = {
-            id: subFromToken || cognitoUser.getUsername(),
+            id: subFromToken || cognitoUser.getUsername(), // Fallback, though subFromToken is preferred.
           };
           attributes.forEach((attr) => {
             if (attr.Name === "email") baseUser.email = attr.Value;
             if (attr.Name === "name") baseUser.name = attr.Value;
+            // Cognito 'sub' attribute from getUserAttributes is typically the same as in the token.
+            // Prioritizing subFromToken ensures 'id' comes from the validated session token.
           });
 
           if (!baseUser.id) {
+            // Should ideally always have an ID (sub or username)
             console.error(
-              "User ID (sub) could not be determined in fetchUserAttributes."
+              "User ID (sub/username) could not be determined in fetchUserAttributes."
             );
-            return reject(new Error("User ID (sub) could not be determined."));
+            return reject(new Error("User ID could not be determined."));
           }
 
           resolve(baseUser as Pick<User, "id" | "name" | "email">);
         } else {
-          resolve(null);
+          resolve(null); // No attributes found
         }
       });
     });
   },
 }));
-
-// function getAttributeValue(attributes: CognitoUserAttribute[] | undefined, attributeName: string): string | undefined {
-//   if (!attributes) return undefined;
-//   const attribute = attributes.find(attr => attr.getName() === attributeName);
-//   return attribute ? attribute.getValue() : undefined;
-// }

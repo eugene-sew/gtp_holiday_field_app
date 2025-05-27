@@ -1,37 +1,57 @@
 import { useNavigate } from "react-router-dom";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User as UserIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Task } from "../../types/task";
 import { clsx } from "clsx";
 import { useTeamStore } from "../../stores/teamStore";
 import { useAuthStore } from "../../stores/authStore";
 
+/**
+ * @interface TaskCardProps
+ * Defines the props for the TaskCard component.
+ */
 type TaskCardProps = {
   task: Task;
 };
 
+/**
+ * @constant statusColors
+ * Maps task status (and overdue state) to Tailwind CSS classes for background and text color.
+ */
+const statusColors = {
+  New: "bg-gray-100 text-gray-800",
+  in_progress: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
+  overdue: "bg-red-100 text-red-800",
+};
+
+/**
+ * @constant statusLabel
+ * Maps task status (and overdue state) to human-readable labels.
+ */
+const statusLabel = {
+  New: "New",
+  in_progress: "In Progress",
+  completed: "Completed",
+  overdue: "Overdue",
+};
+
+/**
+ * TaskCard component: Displays a summary of a task in a card format.
+ * Shows task description (truncated), status, deadline, and assignee.
+ * Navigates to the task details page on click.
+ * Adapts assignee display for non-admin users viewing tasks assigned to them.
+ * Highlights urgent tasks with a subtle pulse animation.
+ * @param {TaskCardProps} props - The props for the component.
+ */
 const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
   const team = useTeamStore((state) => state.team);
   const { user } = useAuthStore();
 
-  const statusColors = {
-    New: "bg-gray-100 text-gray-800",
-    in_progress: "bg-blue-100 text-blue-800",
-    completed: "bg-green-100 text-green-800",
-    overdue: "bg-red-100 text-red-800",
-  };
-
   const isOverdue =
     new Date(task.deadline) < new Date() && task.status !== "completed";
   const displayStatus = isOverdue ? "overdue" : task.status;
-
-  const statusLabel = {
-    New: "New",
-    in_progress: "In Progress",
-    completed: "Completed",
-    overdue: "Overdue",
-  };
 
   const deadlineDate = new Date(task.deadline);
   const today = new Date();
@@ -62,7 +82,10 @@ const TaskCard = ({ task }: TaskCardProps) => {
       )}
     >
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+        <h3
+          className="text-lg font-semibold text-gray-900 line-clamp-1"
+          title={task.description}
+        >
           {task.description.substring(0, 50) +
             (task.description.length > 50 ? "..." : "")}
         </h3>
@@ -95,7 +118,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
           </div>
 
           <div className="flex items-center text-xs text-gray-500">
-            <User className="h-3 w-3 mr-1" />
+            <UserIcon className="h-3 w-3 mr-1" />
             <span>{assigneeName}</span>
           </div>
         </div>
