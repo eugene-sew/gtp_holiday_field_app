@@ -31,27 +31,7 @@ const getIconComponent = (
 };
 
 export const useNotificationStore = create<NotificationState>((set) => ({
-  notifications: [
-    {
-      id: "1",
-      type: "task_assigned",
-      title: "New Task Assigned",
-      message:
-        'You have been assigned a new task: "Site inspection at Project Alpha".',
-      read: false,
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
-      icon: CheckSquare,
-    },
-    {
-      id: "2",
-      type: "deadline",
-      title: "Upcoming Deadline",
-      message: 'The task "Equipment maintenance" is due tomorrow.',
-      read: false,
-      timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago
-      icon: AlertTriangle,
-    },
-  ],
+  notifications: [],
 
   addNotification: (notification) => {
     const newNotification: Notification = {

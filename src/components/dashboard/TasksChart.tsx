@@ -1,69 +1,61 @@
-import { useEffect, useRef } from 'react';
-import Card from '../ui/Card';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import Card from "../ui/Card";
 
-// Simplified chart component
-const TasksChart = ({ data }: { data: { name: string; value: number; color: string }[] }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Set canvas size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    
-    // Calculate total value
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    if (total === 0) return;
-    
-    // Draw pie chart
-    let startAngle = 0;
-    data.forEach(item => {
-      const sliceAngle = (2 * Math.PI * item.value) / total;
-      
-      ctx.beginPath();
-      ctx.moveTo(canvas.width / 2, canvas.height / 2);
-      ctx.arc(
-        canvas.width / 2,
-        canvas.height / 2,
-        Math.min(canvas.width, canvas.height) / 2 - 10,
-        startAngle,
-        startAngle + sliceAngle
-      );
-      ctx.closePath();
-      
-      ctx.fillStyle = item.color;
-      ctx.fill();
-      
-      startAngle += sliceAngle;
-    });
-  }, [data]);
-  
+interface ChartDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+const TasksChart = ({ data }: { data: ChartDataItem[] }) => {
+  const chartData = data.filter((item) => item.value > 0);
+  const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  if (totalValue === 0) {
+    return (
+      <Card title="Task Status Distribution" className="h-full">
+        <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+          <p>No task data to display.</p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card title="Task Status Distribution" className="h-full">
-      <div className="h-64 flex flex-col items-center">
-        <div className="relative w-full h-48">
-          <canvas ref={canvasRef} className="w-full h-full"></canvas>
-        </div>
-        <div className="flex justify-center items-center space-x-4 mt-4">
-          {data.map(item => (
-            <div key={item.name} className="flex items-center">
-              <div 
-                className="w-3 h-3 rounded-full mr-2" 
-                style={{ backgroundColor: item.color }}
-              ></div>
-              <span className="text-sm text-gray-600">{item.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ResponsiveContainer width="100%" height={256}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            // label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="value"
+            nameKey="name"
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: number, name: string) => [
+              `${value} tasks`,
+              name,
+            ]}
+          />
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
     </Card>
   );
 };

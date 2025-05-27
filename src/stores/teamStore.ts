@@ -86,27 +86,21 @@ export const useTeamStore = create<TeamState>((set) => ({
   },
 
   addTeamMember: async (member: User) => {
-    console.warn(
-      "addTeamMember is using local simulation and needs API integration."
-    );
+    console.warn("addTeamMember is using local simulation");
     set((state) => ({
       team: [...state.team, member],
     }));
   },
 
   updateTeamMember: async (member: User) => {
-    console.warn(
-      "updateTeamMember is using local simulation and needs API integration."
-    );
+    console.warn("updateTeamMember is using local simulation");
     set((state) => ({
       team: state.team.map((m) => (m.id === member.id ? member : m)),
     }));
   },
 
   removeTeamMember: async (id: string) => {
-    console.warn(
-      "removeTeamMember is using local simulation and needs API integration."
-    );
+    console.warn("removeTeamMember is using local simulation");
     set((state) => ({
       team: state.team.filter((m) => m.id !== id),
     }));

@@ -35,7 +35,7 @@ const TaskForm = ({ task, isEditing = false }: TaskFormProps) => {
     deadline: task?.deadline
       ? new Date(task.deadline).toISOString().split("T")[0]
       : "",
-    status: task?.status || "pending",
+    status: task?.status || "New",
     assigneeId: task?.assignedTo || "",
   });
 
@@ -46,14 +46,14 @@ const TaskForm = ({ task, isEditing = false }: TaskFormProps) => {
         deadline: task.deadline
           ? new Date(task.deadline).toISOString().split("T")[0]
           : "",
-        status: task.status || "pending",
+        status: task.status || "New",
         assigneeId: task.assignedTo || "",
       });
     } else {
       setFormData({
         description: "",
         deadline: "",
-        status: "pending",
+        status: "New",
         assigneeId: "",
       });
     }
@@ -256,7 +256,6 @@ const TaskForm = ({ task, isEditing = false }: TaskFormProps) => {
                     className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="New">New</option>
-                    <option value="pending">Pending</option>
                     <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                   </select>

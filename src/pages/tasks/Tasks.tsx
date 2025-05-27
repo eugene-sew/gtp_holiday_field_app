@@ -77,7 +77,6 @@ const Tasks = () => {
             >
               <option value="all">All Statuses</option>
               <option value="New">New</option>
-              <option value="pending">Pending</option>
               <option value="in_progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="overdue">Overdue</option>

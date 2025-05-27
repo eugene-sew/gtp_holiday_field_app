@@ -41,18 +41,31 @@ const TaskDetails = () => {
     setLoading(false);
   }, [taskId, getTaskById, navigate, tasks, addNotification]);
 
-  const assigneeUser = task?.assignedTo
-    ? team.find((member) => member.id === task.assignedTo)
-    : null;
-  const assigneeName = assigneeUser ? assigneeUser.name : "Unassigned";
+  // Refined assigneeName logic
+  let assigneeName = "Unassigned";
+  if (task?.assignedTo) {
+    if (user && user.id === task.assignedTo) {
+      assigneeName = user.name || "Assigned to you"; // Use current user's name or "Assigned to you"
+    } else {
+      const teamMember = team.find((member) => member.id === task.assignedTo);
+      if (teamMember) {
+        assigneeName = teamMember.name;
+      } else {
+        assigneeName = "Unassigned";
+      }
+    }
+  }
 
   if (loading || !task) {
     return <div className="p-4">Loading task details...</div>;
   }
 
   const isAdmin = user?.role === "admin";
-  const isAssignee = user?.sub === task.assignedTo;
-  const canEdit = isAdmin || isAssignee;
+  const isAssignee = user?.id === task.assignedTo; // Re-introduce isAssignee
+  // Controls the main "Edit" button for the page
+  const canNavigateToEditPage = isAdmin;
+  // Controls status update buttons
+  const canUpdateTaskStatus = isAdmin || isAssignee;
   const canDelete = isAdmin;
 
   const deadlineDate = new Date(task.deadline);
@@ -133,12 +146,11 @@ const TaskDetails = () => {
             Task: {task.description.substring(0, 50)}...
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Created by {task.createdBy} on{" "}
-            {format(new Date(task.createdAt), "PPP")}
+            Created on {format(new Date(task.createdAt), "PPP")}
           </p>
         </div>
         <div className="flex space-x-3">
-          {canEdit && (
+          {canNavigateToEditPage && (
             <Button
               variant="outline"
               onClick={() => navigate(`/tasks/${task.taskId}/edit`)}
@@ -181,8 +193,6 @@ const TaskDetails = () => {
                         ? "bg-red-100 text-red-800"
                         : task.status === "New"
                         ? "bg-gray-100 text-gray-800"
-                        : task.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
                         : task.status === "in_progress"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-green-100 text-green-800"
@@ -217,30 +227,16 @@ const TaskDetails = () => {
                 </div>
               </div>
 
-              {canEdit && task.status !== "completed" && (
+              {canUpdateTaskStatus && task.status !== "completed" && (
                 <div className="pt-4 border-t border-gray-200">
                   <h3 className="text-sm font-medium text-gray-500 mb-3">
                     Update Status
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {task.status !== "pending" && task.status !== "New" && (
+                    {task.status === "New" && (
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => handleStatusChange("pending")}
-                        isLoading={isUpdatingStatus}
-                      >
-                        Mark as Pending
-                      </Button>
-                    )}
-                    {task.status !== "in_progress" && (
-                      <Button
-                        size="sm"
-                        variant={
-                          task.status === "pending" || task.status === "New"
-                            ? "primary"
-                            : "outline"
-                        }
+                        variant="primary"
                         onClick={() => handleStatusChange("in_progress")}
                         isLoading={isUpdatingStatus}
                       >

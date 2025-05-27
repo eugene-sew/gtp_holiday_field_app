@@ -85,7 +85,7 @@ const Header = ({
                 <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1 px-4 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">
-                      {user?.id}
+                      {user?.name}
                     </p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>

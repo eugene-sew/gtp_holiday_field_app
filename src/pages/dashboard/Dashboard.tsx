@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Edit3,
   PlusSquare,
+  ListTodo,
 } from "lucide-react";
 import StatCard from "../../components/dashboard/StatCard";
 import TasksChart from "../../components/dashboard/TasksChart";
@@ -33,15 +34,15 @@ const Dashboard = () => {
 
   const userTasks = isAdmin
     ? tasks
-    : tasks.filter((task) => task.assignedTo === user?.sub);
+    : tasks.filter((task) => task.assignedTo === user?.id);
 
-  const pendingTasks = userTasks.filter((task) => task.status === "pending");
   const inProgressTasks = userTasks.filter(
     (task) => task.status === "in_progress"
   );
   const completedTasks = userTasks.filter(
     (task) => task.status === "completed"
   );
+  const toDoTasks = userTasks.filter((task) => task.status === "New");
 
   const overdueTasks = userTasks.filter((task) => {
     const deadlineDate = new Date(task.deadline);
@@ -50,7 +51,7 @@ const Dashboard = () => {
   });
 
   const chartData = [
-    { name: "Pending", value: pendingTasks.length, color: "#F59E0B" },
+    { name: "To Do", value: toDoTasks.length, color: "#6B7280" },
     { name: "In Progress", value: inProgressTasks.length, color: "#3B82F6" },
     { name: "Completed", value: completedTasks.length, color: "#10B981" },
   ];
@@ -66,8 +67,8 @@ const Dashboard = () => {
     );
 
     for (const task of sortedTasks) {
-      const assignee = teamMembers.find((m) => m.sub === task.assignedTo);
-      const creator = teamMembers.find((m) => m.sub === task.createdBy);
+      const assignee = teamMembers.find((m) => m.id === task.assignedTo);
+      const creator = teamMembers.find((m) => m.id === task.createdBy);
 
       let userName: string;
       if (
@@ -113,7 +114,8 @@ const Dashboard = () => {
     team
   ).slice(0, 5);
 
-  const upcomingTasks = [...pendingTasks, ...inProgressTasks]
+  const upcomingTasks = userTasks
+    .filter((task) => task.status === "New" || task.status === "in_progress")
     .sort(
       (a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
     )
@@ -136,6 +138,12 @@ const Dashboard = () => {
           value={userTasks.length}
           icon={<CheckSquare className="h-6 w-6" />}
           color="blue"
+        />
+        <StatCard
+          title="To Do"
+          value={toDoTasks.length}
+          icon={<ListTodo className="h-6 w-6" />}
+          color="gray"
         />
         <StatCard
           title="In Progress"
@@ -186,15 +194,15 @@ const Dashboard = () => {
                   <div className="flex">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${
-                        task.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
+                        task.status === "New"
+                          ? "bg-gray-100 text-gray-800"
                           : task.status === "in_progress"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-green-100 text-green-800"
                       }`}
                     >
-                      {task.status === "pending"
-                        ? "Pending"
+                      {task.status === "New"
+                        ? "New"
                         : task.status === "in_progress"
                         ? "In Progress"
                         : "Completed"}
