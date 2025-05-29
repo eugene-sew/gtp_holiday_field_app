@@ -29,7 +29,11 @@ interface ApiUser {
 interface TeamState {
   team: User[];
   fetchTeamMembers: () => Promise<void>;
-  addTeamMember: (member: User) => Promise<void>;
+  addTeamMember: (member: {
+    name: string;
+    email: string;
+    temporaryPassword: string;
+  }) => Promise<void>;
   updateTeamMember: (member: User) => Promise<void>;
   removeTeamMember: (id: string) => Promise<void>;
 }
@@ -115,11 +119,55 @@ export const useTeamStore = create<TeamState>((set) => ({
   // These currently only modify local state and log warnings.
   // Full API integration is required for these to be persistent.
 
-  addTeamMember: async (member: User) => {
-    console.warn(
-      "addTeamMember is using local simulation and needs API integration."
-    );
-    set((state) => ({ team: [...state.team, member] }));
+  /**
+   * Adds a new team member by sending a POST request to the API.
+   * Only admins can perform this action. On success, refreshes the team list.
+   * @param {User} member - The new member to add (expects name, email, and a temporary password field).
+   */
+  addTeamMember: async (member: {
+    name: string;
+    email: string;
+    temporaryPassword: string;
+  }) => {
+    const { user } = useAuthStore.getState();
+    if (!user || !user.idToken) {
+      console.error(
+        "Add team member: User not authenticated or idToken missing"
+      );
+      return;
+    }
+    if (user.role !== "admin") {
+      console.warn("Add team member: Only admins can add team members.");
+      return;
+    }
+    try {
+      const response = await fetch(API_USERS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.idToken}`,
+        },
+        body: JSON.stringify({
+          username: member.name,
+          email: member.email,
+          temporaryPassword: member.temporaryPassword,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
+        throw new Error(
+          `Failed to add team member: ${
+            errorData.message || response.statusText
+          }`
+        );
+      }
+      // Refresh the team list after successful addition
+      await useTeamStore.getState().fetchTeamMembers();
+    } catch (error) {
+      console.error("Add team member failed:", error);
+    }
   },
 
   updateTeamMember: async (member: User) => {

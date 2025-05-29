@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Loading from "./components/ui/Loading";
 import { useTaskStore } from "./stores/taskStore";
+import SetPassword from "./pages/auth/SetPassword";
 
 function App() {
   const { isAuthenticated, checkAuth } = useAuthStore();
@@ -64,6 +65,7 @@ function App() {
               )
             }
           />
+          <Route path="/set-password" element={<SetPassword />} />
         </Route>
 
         {/* Protected Routes: Require authentication */}

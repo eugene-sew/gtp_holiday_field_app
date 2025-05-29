@@ -1,6 +1,9 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
+import {
+  useAuthStore,
+  usePendingCognitoUserStore,
+} from "../../stores/authStore";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { User, Lock } from "lucide-react";
@@ -8,6 +11,7 @@ import { User, Lock } from "lucide-react";
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { setCognitoUser } = usePendingCognitoUserStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +32,30 @@ const Login = () => {
     try {
       await login(email, password); // Use Cognito login
       navigate("/dashboard");
-    } catch (err) {
+    } catch (err: unknown) {
+      // Handle Cognito NEW_PASSWORD_REQUIRED challenge
+      if (
+        err &&
+        typeof err === "object" &&
+        "challenge" in err &&
+        (err as { challenge: string }).challenge === "NEW_PASSWORD_REQUIRED" &&
+        "cognitoUser" in err &&
+        "userAttributes" in err &&
+        "requiredAttributes" in err
+      ) {
+        const challengeObj = err as {
+          cognitoUser: unknown;
+          userAttributes: unknown;
+          requiredAttributes: unknown;
+        };
+        setCognitoUser(challengeObj.cognitoUser);
+        navigate("/set-password", {
+          state: {
+            email,
+          },
+        });
+        return;
+      }
       // Type the error more specifically
       let errorMessage = "Authentication failed. Please try again.";
       if (err instanceof Error) {

@@ -134,6 +134,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ user: null, isAuthenticated: false });
           reject(err);
         },
+        newPasswordRequired: (userAttributes, requiredAttributes) => {
+          // Instead of trying to call a callback, reject with a special object
+          reject({
+            challenge: "NEW_PASSWORD_REQUIRED",
+            cognitoUser: cognitoIdentityUser,
+            userAttributes,
+            requiredAttributes,
+          });
+        },
       });
     });
   },
@@ -305,3 +314,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 }));
+
+// Temporary store for Cognito user during NEW_PASSWORD_REQUIRED flow
+import { create as createZustand } from "zustand";
+
+interface PendingCognitoUserState {
+  cognitoUser: unknown | null;
+  setCognitoUser: (user: unknown) => void;
+  clearCognitoUser: () => void;
+}
+
+export const usePendingCognitoUserStore =
+  createZustand<PendingCognitoUserState>((set) => ({
+    cognitoUser: null,
+    setCognitoUser: (user) => set({ cognitoUser: user }),
+    clearCognitoUser: () => set({ cognitoUser: null }),
+  }));
