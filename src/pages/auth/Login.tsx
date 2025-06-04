@@ -83,8 +83,8 @@ const Login = () => {
       <form onSubmit={handleLogin} className="space-y-6">
         <Input
           id="email"
-          type="email"
-          label="Email address"
+          type="text"
+          label="Email address/Username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
