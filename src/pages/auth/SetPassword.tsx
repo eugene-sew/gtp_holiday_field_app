@@ -102,6 +102,7 @@ const SetPassword = () => {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           fullWidth
+          className="bg-white px-2 py-2"
         />
         <Input
           label="Confirm New Password"
@@ -110,6 +111,7 @@ const SetPassword = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           fullWidth
+          className="bg-white px-2 py-2"
         />
         <Button type="submit" fullWidth isLoading={loading}>
           Set Password

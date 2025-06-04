@@ -1,8 +1,19 @@
 # FieldTask - Frontend
 
-This is the frontend application for FieldTask, a task management system designed for field teams and administrative staff. It provides features for task creation, assignment, status tracking, and team overview.
+This is the _completed_ frontend application for FieldTask, a robust task management system designed for field teams and administrative staff.
+It provides comprehensive features for task creation, assignment, status tracking, and team overview, fulfilling all requirements of the Holiday Task lab.
 
-**Live Application URL:** [https://main.d2xfr18my4z6ro.amplifyapp.com/](https://main.d2xfr18my4z6ro.amplifyapp.com/)
+**Live Application URL:** [https://main.d1wbbnjgdrig4e.amplifyapp.com/](https://main.d1wbbnjgdrig4e.amplifyapp.com/)
+
+**Default Admin Credentials:**
+
+- **Username:** `sandb-admin`
+- **Password:** `@y3h2CuonH`
+
+**Default Member Credentials:**
+
+- **Username:** `sandb-admin`
+- **Password:** `@y3h2CuonH`
 
 ## Table of Contents
 
@@ -17,6 +28,7 @@ This is the frontend application for FieldTask, a task management system designe
 - [Building for Production](#building-for-production)
 - [Linting and Formatting](#linting-and-formatting)
 - [Key Architectural Decisions](#key-architectural-decisions)
+- [Screenshots](#screenshots)
 
 ## Features
 
@@ -96,31 +108,9 @@ frontend/
 
 This application is built with a serverless-first approach on AWS, leveraging managed services for scalability, reliability, and reduced operational overhead.
 
-```mermaid
-graph TD
-    A[Users] -->|HTTPS| B(AWS Amplify Hosting);
-    B -->|Static Content| C{React Frontend App (Vite/TypeScript)};
-    C -->|API Calls (HTTPS)| D(AWS API Gateway);
-    D -->|Authorized Requests| E{AWS Lambda (Tasks API)};
-    D -->|Authorized Requests| F{AWS Lambda (Users API)};
-    C -->|Authentication| G(AWS Cognito);
-    E --> H[(AWS DynamoDB / Database)];
-    F --> H;
-    G --> H;
+For the backend infrastructure code, please refer to the [AWS CDK Backend Repository](https://github.com/eugene-sew/gtp_holiday_cdk).
 
-    subgraph Frontend
-        B
-        C
-    end
-
-    subgraph Backend Services
-        D
-        E
-        F
-        G
-        H
-    end
-```
+![Cloud Architecture](/public/images/stucture.png)
 
 **Key AWS Services Used:**
 
@@ -191,8 +181,8 @@ VITE_APP_API_BASE_URL=<Your_Task_API_Base_URL>
 1.  **Clone the repository** (if you haven't already):
 
     ```bash
-    git clone <repository-url>
-    cd <project-directory>/frontend
+    git clone https://github.com/eugene-sew/gtp_holiday_field_app.git
+    cd gtp_holiday_field_app/
     ```
 
 2.  **Install dependencies**:
@@ -202,7 +192,7 @@ VITE_APP_API_BASE_URL=<Your_Task_API_Base_URL>
     ```
 
 3.  **Set up environment variables**:
-    Create a `.env` file in the `frontend` directory as described in the [Environment Variables](#environment-variables) section.
+    Create a `.env` file in the directory as described in the [Environment Variables](#environment-variables) section.
 
 ## Running the Application
 
@@ -232,8 +222,6 @@ To lint the codebase using ESLint:
 npm run lint
 ```
 
-Consider adding a Prettier setup for consistent code formatting if not already integrated with ESLint.
-
 ## Key Architectural Decisions
 
 - **State Management (Zustand)**: Chosen for its simplicity, minimal boilerplate, and good performance. Stores are modularized (auth, tasks, team, notifications) for better organization.
@@ -249,4 +237,24 @@ Consider adding a Prettier setup for consistent code formatting if not already i
   - User data from the team API (`/users`) is transformed from `ApiUser` to the local `User` type in `teamStore.ts`.
   - Recent activity on the dashboard is dynamically generated from task data in `Dashboard.tsx` rather than relying on a separate activity store.
 
-This README provides a good starting point. You can expand it further with more details on deployment, specific component functionalities, or contribution guidelines as the project evolves.
+## Screenshots
+
+### Login Page
+
+![Login Page](public/images/login.png)
+
+### Dashboard (Admin View)
+
+![Admin Dashboard](public/images/admin_dashboard.png)
+
+### Tasks Page (Member View)
+
+![Member Tasks](public/images/member_tasks.png)
+
+### Create Task Form
+
+![Create Task](public/images/create_task.png)
+
+### Team Overview (Admin View)
+
+![Team Overview](public/images/team_overview.png)
