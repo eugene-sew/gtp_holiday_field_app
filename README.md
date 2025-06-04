@@ -5,15 +5,15 @@ It provides comprehensive features for task creation, assignment, status trackin
 
 **Live Application URL:** [https://main.d1wbbnjgdrig4e.amplifyapp.com/](https://main.d1wbbnjgdrig4e.amplifyapp.com/)
 
-**Default Admin Credentials:**
+## Testing the Live Application
 
-- **Username:** `sandb-admin`
-- **Password:** `@y3h2CuonH`
+To test the application functionalities, you can:
 
-**Default Member Credentials:**
-
-- **Username:** `sandb-admin`
-- **Password:** `@y3h2CuonH`
+1.  Log in with the provided default admin credentials:
+    - **Username:** `sandb-admin`
+    - **Password:** `@y3h2CuonH`
+2.  As an admin, navigate to the Team Management section.
+3.  Add a new team member and then try logging in with the new member's credentials to test the member's view and task functionalities.
 
 ## Table of Contents
 
